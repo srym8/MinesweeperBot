@@ -79,9 +79,14 @@ def getconstraints(board):
                 remaining_mines = cell - known_mines
 
                 if remaining_mines < 0 or remaining_mines > len(unknown_cells):
-                   raise ValueError(f"Warning: Inconsistent state at cell ({row_index}, {col_index}).")
+                   raise ValueError(
+                       f"Inconsistent state at cell ({row_index}, {col_index}): "
+                       f"cell value={cell}, "
+                       f"unknown neighbours={known_mines}, "
+                       f"remaining mines={remaining_mines}"
+                       )
 
-                if unknown_cells and remaining_mines >= 0 and remaining_mines <= len(unknown_cells):
+                if unknown_cells:
                     constraints.append((set(unknown_cells), remaining_mines))
 
     return constraints
@@ -157,12 +162,47 @@ def isvalidarrangement(assignment, constraints):
 
 
 def findvalidarrangements(cells, constraints):
+    cells = list(cells)
+
     valid_arrangements = []
-    for arrangement in generatearrangements(len(cells)):
-        assignment = dict(zip(cells, arrangement))
-        if isvalidarrangement(assignment, constraints):
-            valid_arrangements.append(assignment)
+    assignment = {}
+
+    def backtrack(index):
+        if index == len(cells):
+            valid_arrangements.append(assignment.copy())
+            return
+
+        cell = cells[index]
+
+        for value in (0, 1):
+            assignment[cell] = value
+
+            if isvalidpartialassignment(assignment, constraints):
+                backtrack(index + 1)
+
+            del assignment[cell]
+
+    backtrack(0)
+
     return valid_arrangements
+
+
+
+def isvalidpartialassignment(assignment, constraints):
+    for cells, mines in constraints:
+        assigned_cells = [cell for cell in cells if cell in assignment]
+
+        assigned_mines = sum(assignment[cell] for cell in assigned_cells)
+        remaining_cells = len(cells) - len(assigned_cells)
+
+        if assigned_mines > mines:
+            return False
+
+        if assigned_mines + remaining_cells < mines:
+            return False
+
+    return True
+
 
 
 def findguaranteedcells(valid_arrangements):
@@ -522,17 +562,15 @@ def solveboard(board, total_mines):
 
                 cells = sorted(cells)
 
-
-            
                 valid_arrangements = findvalidarrangements(cells, group)
+
                 safe_cells, mine_cells = findguaranteedcells(valid_arrangements)
 
                 applydeductions(board, safe_cells, mine_cells)
 
 
         except ValueError as e:
-            print(e)
-            return
+            raise ValueError(f"SOlver encountered an inconsistent state: {e}") from e
 
         if board == original:
             safe_cells = []
@@ -552,51 +590,52 @@ def solveboard(board, total_mines):
             return None
         
 
+if __name__ == "__main__":
 
-board = [
-    [1, MINE],
-    [1, 1]
-]
-
-cells = [(0, 0), (0, 1), (0, 2), (0, 3)]
-
-constraints = [
-    ({(0, 1), (1, 0), (1, 1)}, 1)
-]
-
-valid_arrangements = [
-    {(0, 0): 1, (0, 1): 0},
-    {(0, 0): 0, (0, 1): 1},
-    {(0, 0): 1, (0, 1): 1},
-    {(0, 0): 0, (0, 1): 0}
-]
-
-probabilities = {
-    (0, 0): 0.6,
-    (0, 1): 0.2,
-    (0, 2): 0.8
-}
-
-counts_a = {0: 2, 1: 3}
-counts_b = {1: 4, 2: 2}
-
-group_counts = [
-    {0: 2, 1: 3},
-    {1: 4, 2: 2},
-    {0: 1, 1: 2}
-]
-
-combined_counts = {1: 8, 2: 32, 3: 38, 4: 12}
-
-group_arrangements = [
-    [
-        {(0, 0): 1, (0, 1): 0},
-        {(0, 0): 0, (0, 1): 0}
-    ],
-    [
-        {(0, 4): 1, (0, 5): 0},
-        {(0, 4): 0, (0, 5): 1}
+    board = [
+        [1, MINE],
+        [1, 1]
     ]
-]
 
-print(solveboard(board, 1))
+    cells = [(0, 0), (0, 1), (0, 2), (0, 3)]
+
+    constraints = [
+        ({(0, 1), (0, 2), (1, 1)}, 1)
+    ]
+
+    valid_arrangements = [
+        {(0, 0): 1, (0, 1): 0},
+        {(0, 0): 0, (0, 1): 1},
+        {(0, 0): 1, (0, 1): 1},
+        {(0, 0): 0, (0, 1): 0}
+    ]
+
+    probabilities = {
+        (0, 0): 0.6,
+        (0, 1): 0.2,
+        (0, 2): 0.8
+    }
+
+    counts_a = {0: 2, 1: 3}
+    counts_b = {1: 4, 2: 2}
+
+    group_counts = [
+        {0: 2, 1: 3},
+        {1: 4, 2: 2},
+        {0: 1, 1: 2}
+    ]
+
+    combined_counts = {1: 8, 2: 32, 3: 38, 4: 12}
+
+    group_arrangements = [
+        [
+            {(0, 0): 1, (0, 1): 0},
+            {(0, 0): 0, (0, 1): 0}
+        ],
+        [
+            {(0, 4): 1, (0, 5): 0},
+            {(0, 4): 0, (0, 5): 1}
+        ]
+    ]
+
+    print(solveboard(board, 1))
