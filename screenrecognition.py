@@ -314,7 +314,7 @@ if any(t is None for t in (normal_template, win_template, lose_template)):
     raise FileNotFoundError("Could not load one or more templates")
 
 
-total_games = 20
+total_games = 5
 
 total_wins = 0
 total_losses = 0
@@ -332,7 +332,7 @@ for game in range(total_games):
 
 
     while True:
-        if time.perf_counter() - start_time > 300:
+        if time.perf_counter() - start_time > 500:
             print("Game exceeded 5 minutes. Stopping.")
             game_result = "Timeout"
             break
@@ -379,7 +379,6 @@ for game in range(total_games):
                     mines_to_flag.append((row, col))
 
         for row, col in mines_to_flag:
-            print(f"Flagging mine at ({row}, {col})")
 
             flagcell(row, col, board_region, rows, cols, monitor_origin)
 
@@ -403,7 +402,7 @@ for game in range(total_games):
         pyautogui.click()
         moves_made += 1
 
-        time.sleep(0.5)
+        #time.sleep(0.5)
 
 
     elapsed_time = time.perf_counter() - start_time
