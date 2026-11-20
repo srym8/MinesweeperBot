@@ -36,7 +36,6 @@ def isemptycell(cell_image):
     return True
 
 
-
 def capturescreen(monitor_index):
     with mss.MSS() as sct:
         monitor = sct.monitors[monitor_index]
@@ -284,9 +283,9 @@ def savesmileytemplate(screen_image, smiley_region, filename):
 from minesweeper_bot import solveboard
 
 
-rows = 16
-cols = 16
-total_mines = 40
+rows = 25
+cols = 70
+total_mines = 516
 
 
 board_image, board_region, smiley_region = findboard(rows, cols)
@@ -314,7 +313,7 @@ if any(t is None for t in (normal_template, win_template, lose_template)):
     raise FileNotFoundError("Could not load one or more templates")
 
 
-total_games = 5
+total_games = 1
 
 total_wins = 0
 total_losses = 0

@@ -171,12 +171,18 @@ def play_game(
     seed,
     max_moves=None,
     verbose=False,
+    first_move=None,
 ):
     game = MinesweeperGame(rows, cols, total_mines, seed)
 
     start_time = time.perf_counter()
     moves = 0
     guesses = 0
+
+    if first_move is not None:
+        game.reveal(*first_move)
+        moves = 1
+
     known_mines = set()
 
     if max_moves is None:

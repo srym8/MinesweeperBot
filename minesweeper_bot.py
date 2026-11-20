@@ -658,12 +658,16 @@ def lookahead_deduction_count(board):
 
 def getlookaheadscore(board, cell, sampled_boards):
     """
-    Estimate the number of newly revealed or deducible
-    safe cells after clicking a candidate.
+    Estimate the outcome of clicking a cell, conditional
+    on the cell being safe.
 
-    Scores are conditional on the click being safe.
+    Returns:
+        expected newly revealed cells
+        expected logically deduced safe cells
+        expected clue entropy
     """
-    total_score = 0.0
+    total_revealed = 0.0
+    total_deductions = 0.0
     safe_samples = 0
 
     already_revealed = sum(
@@ -684,49 +688,56 @@ def getlookaheadscore(board, cell, sampled_boards):
             for value in row
         )
 
-        newly_revealed = (
-            revealed_after - already_revealed
-        )
-
-        deductions = lookahead_deduction_count(simulated)
-
-        total_score += newly_revealed + deductions
+        total_revealed += revealed_after - already_revealed
+        total_deductions += lookahead_deduction_count(simulated)
         safe_samples += 1
 
     if safe_samples == 0:
-        return 0.0
+        return (0.0, 0.0, 0.0)
 
-    return total_score / safe_samples
+    entropy = getexpectedinformationgain(
+        board, cell, sampled_boards
+    )
+
+    return (
+        total_revealed / safe_samples,
+        total_deductions / safe_samples,
+        entropy,
+    )
 
 
-def findsafestcell(
-    probabilities,
-    board,
-    total_mines,
-    sample_count=80,
-    max_candidates=6,
-):
+LOOKAHEAD_CONFIG = {
+    "sample_count": 80,
+    "max_candidates": 6,
+    "reveal_weight": 1.0,
+    "deduction_weight": 1.0,
+    "entropy_weight": 0.0,
+}
+
+
+def findsafestcell(probabilities, board, total_mines):
     if not probabilities:
         raise ValueError("No available cells to choose from.")
 
-    min_probability = min(probabilities.values())
+    minimum = min(probabilities.values())
 
-    safest_cells = [
+    safest = [
         cell
         for cell, probability in probabilities.items()
         if math.isclose(
             probability,
-            min_probability,
+            minimum,
             rel_tol=0,
             abs_tol=1e-12,
         )
     ]
 
-    if len(safest_cells) == 1:
-        return safest_cells[0]
+    if len(safest) == 1:
+        return safest[0]
 
-    # Shortlist candidates using the previous heuristic.
-    safest_cells.sort(
+    config = LOOKAHEAD_CONFIG
+
+    safest.sort(
         key=lambda cell: (
             -getinformationscore(board, cell),
             cell[0],
@@ -734,26 +745,31 @@ def findsafestcell(
         )
     )
 
-    candidates = safest_cells[:max_candidates]
+    candidates = safest[:config["max_candidates"]]
 
-    # Sample complete minefields consistent with visible clues.
     sampled_boards = samplevalidboards(
         board,
         total_mines,
-        sample_count=sample_count,
+        sample_count=config["sample_count"],
     )
 
     if not sampled_boards:
         return candidates[0]
 
-    scores = {
-        cell: getlookaheadscore(
+    scores = {}
+
+    for cell in candidates:
+        revealed, deductions, entropy = getlookaheadscore(
             board,
             cell,
             sampled_boards,
         )
-        for cell in candidates
-    }
+
+        scores[cell] = (
+            config["reveal_weight"] * revealed
+            + config["deduction_weight"] * deductions
+            + config["entropy_weight"] * entropy
+        )
 
     return max(
         candidates,

@@ -1,0 +1,15 @@
+{
+    "difficulty": "expert",
+    "configuration": {
+        "sample_count": 80,
+        "max_candidates": 6,
+        "reveal_weight": 1.0,
+        "deduction_weight": 1.0,
+        "entropy_weight": 1.0
+    },
+    "training_games": 30,
+    "validation_games": 100,
+    "validation_win_rate": 0.42,
+    "validation_wins": 42,
+    "validation_failures": 0
+}
