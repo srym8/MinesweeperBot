@@ -1,7 +1,25 @@
+# Virtual environments
 .venv/
 venv/
 
+# Python
 __pycache__/
 *.pyc
+.pytest_cache/
 
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary test images
 test_*.png
+
+# Machine learning checkpoints
+*.pt
+*.pth
+
+# Generated outputs
+data/*.csv
+data/*.jsonl

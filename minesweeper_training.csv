@@ -1,4 +1,0 @@
-game_seed,decision,row,col,mine_probability,unknown_neighbours,revealed_neighbours,adjacent_known_mines,adjacent_safe_cells,row_position,col_position,board_revealed_fraction,remaining_mine_fraction,clue_entropy,wins,samples,target_win_rate
-400000,0,1,1,0.125,1.0,0.0,0.0,0.0,0.125,0.125,0.012345679012345678,0.125,0.4349577648868129,5,8,0.625
-400000,0,1,2,0.125,1.0,0.0,0.0,0.0,0.125,0.25,0.012345679012345678,0.125,0.4434297535714575,6,8,0.75
-400000,0,1,3,0.125,1.0,0.0,0.0,0.0,0.125,0.375,0.012345679012345678,0.125,0.4349577648868129,6,8,0.75
